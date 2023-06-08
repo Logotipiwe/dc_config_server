@@ -1,0 +1,58 @@
+<h2>THIS IS CONFIG SERVER!!</h2>
+<div id="service-select-form">
+    <label>
+        Service
+        <select>
+            <option value="*">all</option>
+            <option value="service-one">service-one</option>
+            <option value="service-two">service-two</option>
+        </select>
+    </label>
+    <input type="submit" value="choose service">
+    <h2>Properties:</h2>
+    <div class="property">
+        <input value="SOME_PROP">
+        <input value="value of this prop" class="prop-value">
+        <form action="/delete_prop" method="post">
+            <input type="hidden" name="id" value="364576572967386">
+            <input type="submit" value="Delete">
+        </form>
+    </div>
+    <div class="property">
+        <input value="SOME_PROP_2" class="prop-name">
+        <input value="value of this prop 222222" class="prop-value">
+        <form action="/delete_prop" method="post">
+            <input type="hidden" name="id" value="364576572967386">
+            <input type="submit" value="Delete">
+        </form>
+    </div>
+    <form action="/create_prop" method="post" class="property creating">
+        <input value="" name="name" class="prop-name">
+        <input value="" name="value" class="prop-value">
+        <input type="submit" value="Create">
+    </form>
+</div>
+<style>
+    form{
+        margin: 0;
+    }
+    .property{
+        margin: 10px;
+        display: flex;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px lightgray solid;
+        width: 500px;
+        align-items: center;
+        background-color: #fafafa;
+    }
+
+    .property>*{
+        margin: 0 5px;
+    }
+
+    .property .prop-value{
+        flex-grow: 1;
+        display: flex;
+    }
+</style>

@@ -1,0 +1,59 @@
+name: Config Server CD
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  cd:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: Logotipiwe/dc_vars
+        token: ${{secrets.PAT}}
+    - name: load-env
+      uses: duskmoon314/action-load-env@v1.1.0
+
+    - uses: actions/checkout@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ env.DOCKER_USER }}
+        password: ${{ env.DOCKER_PAT }}
+    - name: Build
+      id: build_push
+      run: |
+        ls
+        export IMAGE=${{ env.DOCKER_USER }}/config_server:$(date +%s)
+        docker build . -t ${IMAGE}
+        docker push ${IMAGE}
+        echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+    - name: Upload
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: .
+        concurrency: 20
+        remote: /kuber/config_server
+        host: ${{ env.DC_HOST }}
+        username: ${{ env.SSH_USER }}
+        password: ${{ env.SSH_PASSWORD }}
+    - name: Deploy
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ env.DC_HOST }}
+        username: ${{ env.SSH_USER }}
+        password: ${{ env.SSH_PASSWORD }}
+        port: 22
+        script: |
+          export IMAGE=${{ env.IMAGE }}
+#         All vars to put in env
+          export MYSQL_ROOT_PASSWORD=${{ env.MYSQL_ROOT_PASSWORD }}
+          export DB_HOST=${{ env.DB_HOST }}
+          export DB_USER=${{ env.DB_USER }}
+          export LOGOTIPIWE_GMAIL_ID=${{ env.LOGOTIPIWE_GMAIL_ID }}
+#         All vars to put in env
+          docker-compose -f /kuber/{{{comments_back}}}/{{{comments_back}}}.yml down --remove-orphans
+          docker-compose -f /kuber/{{{comments_back}}}/{{{comments_back}}}.yml up -d
