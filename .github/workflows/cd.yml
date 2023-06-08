@@ -31,15 +31,6 @@ jobs:
         docker build . -t ${IMAGE}
         docker push ${IMAGE}
         echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
-    - name: Upload
-      uses: garygrossgarten/github-action-scp@release
-      with:
-        local: .
-        concurrency: 20
-        remote: /kuber/config_server
-        host: ${{ env.DC_HOST }}
-        username: ${{ env.SSH_USER }}
-        password: ${{ env.SSH_PASSWORD }}
     - name: Deploy
       uses: appleboy/ssh-action@v0.1.10
       with:

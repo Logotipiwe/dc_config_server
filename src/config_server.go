@@ -1,7 +1,6 @@
 package main
 
 import (
-	"config_server/src/pages"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -47,7 +46,7 @@ func main() {
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			} else {
 				fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-				fmt.Fprintf(w, pages.GetAdminPage(w, r))
+				fmt.Fprintf(w, GetAdminPage(w, r))
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			}
 		} else {
