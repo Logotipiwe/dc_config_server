@@ -31,6 +31,15 @@ jobs:
         docker build . -t ${IMAGE}
         docker push ${IMAGE}
         echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+    - name: Upload
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: .
+        concurrency: 20
+        remote: /kuber/config_server
+        host: ${{ env.DC_HOST }}
+        username: ${{ env.SSH_USER }}
+        password: ${{ env.SSH_PASSWORD }}
     - name: Deploy
       uses: appleboy/ssh-action@v0.1.10
       with:
@@ -44,5 +53,5 @@ jobs:
           export DB_HOST=${{ env.DB_HOST }}
           export DB_USER=${{ env.DB_USER }}
           export LOGOTIPIWE_GMAIL_ID=${{ env.LOGOTIPIWE_GMAIL_ID }}
-          docker-compose -f /kuber/{{{comments_back}}}/{{{comments_back}}}.yml down --remove-orphans
-          docker-compose -f /kuber/{{{comments_back}}}/{{{comments_back}}}.yml up -d
+          docker-compose -f /kuber/config_server/config_server.yml down --remove-orphans
+          docker-compose -f /kuber/config_server/config_server.yml up -d
