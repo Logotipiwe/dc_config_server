@@ -49,11 +49,9 @@ jobs:
         port: 22
         script: |
           export IMAGE=${{ env.IMAGE }}
-#         All vars to put in env
           export MYSQL_ROOT_PASSWORD=${{ env.MYSQL_ROOT_PASSWORD }}
           export DB_HOST=${{ env.DB_HOST }}
           export DB_USER=${{ env.DB_USER }}
           export LOGOTIPIWE_GMAIL_ID=${{ env.LOGOTIPIWE_GMAIL_ID }}
-#         All vars to put in env
           docker-compose -f /kuber/{{{comments_back}}}/{{{comments_back}}}.yml down --remove-orphans
           docker-compose -f /kuber/{{{comments_back}}}/{{{comments_back}}}.yml up -d
