@@ -3,7 +3,7 @@ services:
   config_server:
     container_name: config_server
     restart: always
-    image: logotipiwe/config_server
+    image: ${IMAGE}
     build: .
     networks:
       - dc-net
