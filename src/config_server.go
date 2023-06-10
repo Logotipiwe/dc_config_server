@@ -11,7 +11,6 @@ import (
 )
 
 const clientId = "319710408255-ntkf14k8ruk4p98sn2u1ho4j99rpjqja.apps.googleusercontent.com"
-const clientSecret = "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"
 const currHost = "http://localhost:3000"
 
 type User struct {
@@ -99,7 +98,7 @@ func exchangeCodeToToken(code string) string {
 	postUrl := "https://oauth2.googleapis.com/token"
 	data := url.Values{}
 	data.Set("client_id", clientId)
-	data.Set("client_secret", clientSecret)
+	data.Set("client_secret", os.Getenv("G_OAUTH_CLIENT_SECRET"))
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
 	data.Set("redirect_uri", currHost+"/g_oauth")
