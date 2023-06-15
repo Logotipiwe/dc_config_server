@@ -16,6 +16,8 @@ services:
       LOGOTIPIWE_GMAIL_ID: ${LOGOTIPIWE_GMAIL_ID}
       G_OAUTH_CLIENT_SECRET: ${G_OAUTH_CLIENT_SECRET}
       SUBPATH: ${SUBPATH-/config_server}
+      OUTER_SCHEME: http
+      OUTER_HOST: localhost
     ports:
       - 81:80
 networks:
