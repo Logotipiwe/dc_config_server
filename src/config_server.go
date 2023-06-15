@@ -11,7 +11,6 @@ import (
 )
 
 const clientId = "319710408255-ntkf14k8ruk4p98sn2u1ho4j99rpjqja.apps.googleusercontent.com"
-const currHost = "http://localhost:3000"
 
 type User struct {
 	Sub        string `json:"sub"`
@@ -37,7 +36,7 @@ func main() {
 		if accessToken != "" {
 			userData, err := getUserData(accessToken)
 			if err != nil {
-				getLoginForm(w)
+				getLoginForm(r, w)
 				return
 			}
 			if userData.Sub != adminId {
@@ -45,18 +44,22 @@ func main() {
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			} else {
 				fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-				fmt.Fprintf(w, GetAdminPage(w, r))
+				fmt.Fprintf(w, getAdminPage(w, r))
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			}
 		} else {
-			getLoginForm(w)
+			getLoginForm(r, w)
 		}
+	})
+
+	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "%s://%s", getScheme(r), r.Host)
 	})
 
 	http.HandleFunc("/g_oauth", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		println("Code is: " + code)
-		token := exchangeCodeToToken(code)
+		token := exchangeCodeToToken(r, code)
 		setATCookie(w, token)
 		println(token)
 		http.Redirect(w, r, "/", 302)
@@ -73,12 +76,12 @@ func main() {
 	}
 }
 
-func getLoginForm(w http.ResponseWriter) {
+func getLoginForm(r *http.Request, w http.ResponseWriter) {
 	loginUrl, _ := url.Parse("https://accounts.google.com/o/oauth2/v2/auth")
 	q := loginUrl.Query()
 
 	q.Set("client_id", clientId)
-	q.Set("redirect_uri", currHost+"/g_oauth")
+	q.Set("redirect_uri", getCurrHost(r)+"/g_oauth")
 	q.Set("response_type", "code")
 	q.Set("scope", "profile")
 	loginUrl.RawQuery = q.Encode()
@@ -94,22 +97,25 @@ func setATCookie(w http.ResponseWriter, token string) {
 	http.SetCookie(w, &cookie)
 }
 
-func exchangeCodeToToken(code string) string {
+func exchangeCodeToToken(r *http.Request, code string) string {
 	postUrl := "https://oauth2.googleapis.com/token"
 	data := url.Values{}
 	data.Set("client_id", clientId)
 	data.Set("client_secret", os.Getenv("G_OAUTH_CLIENT_SECRET"))
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
-	data.Set("redirect_uri", currHost+"/g_oauth")
+	data.Set("redirect_uri", getCurrHost(r)+"/g_oauth")
 	client := &http.Client{}
-	r, _ := http.NewRequest(http.MethodPost, postUrl, strings.NewReader(data.Encode())) // URL-encoded payload
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req, _ := http.NewRequest(http.MethodPost, postUrl, strings.NewReader(data.Encode())) // URL-encoded payload
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, _ := client.Do(r)
+	resp, _ := client.Do(req)
 	defer resp.Body.Close()
 	var answer map[string]string
 	json.NewDecoder(resp.Body).Decode(&answer)
+	if resp.StatusCode != 200 {
+		fmt.Printf("Got error while exchanging code to token. Status: %d. Body: %v", resp.StatusCode, answer)
+	}
 	return answer["access_token"]
 }
 

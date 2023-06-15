@@ -1,8 +1,6 @@
 package main
 
-import "net/http"
-
-func GetAdminPage(w http.ResponseWriter, r *http.Request) string {
+func getAdminPage() string {
 	return `
 <h2>THIS IS CONFIG SERVER!!</h2>
 <div id="service-select-form">
