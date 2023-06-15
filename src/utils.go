@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"os"
 )
 
-func getScheme(r *http.Request) string {
-	if r.TLS == nil {
-		return "http"
-	}
-	return "https"
+func getScheme() string {
+	return os.Getenv("OUTER_SCHEME")
 }
 
-func getCurrHost(r *http.Request) string {
-	return fmt.Sprintf("%s://%s", getScheme(r), r.Host)
+func getCurrHost() string {
+	return fmt.Sprintf("%s://%s:%s",
+		getScheme(), os.Getenv("OUTER_HOST"), os.Getenv("OUTER_PORT"))
+}
+
+func getSubpath() string {
+	return os.Getenv("SUBPATH")
 }

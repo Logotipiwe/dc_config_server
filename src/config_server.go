@@ -36,7 +36,7 @@ func main() {
 		if accessToken != "" {
 			userData, err := getUserData(accessToken)
 			if err != nil {
-				getLoginForm(r, w)
+				getLoginForm(w)
 				return
 			}
 			if userData.Sub != adminId {
@@ -48,13 +48,13 @@ func main() {
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			}
 		} else {
-			getLoginForm(r, w)
+			getLoginForm(w)
 		}
 	})
 
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "%s://%s", getScheme(r), r.Host)
-	})
+	//http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+	//	fmt.Fprintf(w, "%s://%s", getScheme(), r.Host)
+	//})
 
 	http.HandleFunc("/g_oauth", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
@@ -70,18 +70,18 @@ func main() {
 		http.Redirect(w, r, "/", 302)
 	})
 
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	err := http.ListenAndServe(":"+os.Getenv("CONTAINER_PORT"), nil)
 	if err != nil {
 		panic("Lol server fell")
 	}
 }
 
-func getLoginForm(r *http.Request, w http.ResponseWriter) {
+func getLoginForm(w http.ResponseWriter) {
 	loginUrl, _ := url.Parse("https://accounts.google.com/o/oauth2/v2/auth")
 	q := loginUrl.Query()
 
 	q.Set("client_id", clientId)
-	q.Set("redirect_uri", getCurrHost(r)+"/g_oauth")
+	q.Set("redirect_uri", getCurrHost()+getSubpath()+"/g_oauth")
 	q.Set("response_type", "code")
 	q.Set("scope", "profile")
 	loginUrl.RawQuery = q.Encode()
@@ -104,7 +104,7 @@ func exchangeCodeToToken(r *http.Request, code string) string {
 	data.Set("client_secret", os.Getenv("G_OAUTH_CLIENT_SECRET"))
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
-	data.Set("redirect_uri", getCurrHost(r)+"/g_oauth")
+	data.Set("redirect_uri", getCurrHost()+getSubpath()+"/g_oauth")
 	client := &http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, postUrl, strings.NewReader(data.Encode())) // URL-encoded payload
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")

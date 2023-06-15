@@ -49,9 +49,6 @@ jobs:
         port: 22
         script: |
           export IMAGE=${{ env.IMAGE }}
-          export MYSQL_ROOT_PASSWORD=${{ env.MYSQL_ROOT_PASSWORD }}
-          export DB_HOST=${{ env.DB_HOST }}
-          export DB_USER=${{ env.DB_USER }}
           export LOGOTIPIWE_GMAIL_ID=${{ env.LOGOTIPIWE_GMAIL_ID }}
           export G_OAUTH_CLIENT_SECRET=${{ env.G_OAUTH_CLIENT_SECRET }}
           docker-compose -f /kuber/config_server/config_server.yml down --remove-orphans
