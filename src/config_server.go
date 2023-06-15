@@ -44,7 +44,7 @@ func main() {
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			} else {
 				fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-				fmt.Fprintf(w, getAdminPage(w, r))
+				fmt.Fprintf(w, getAdminPage())
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			}
 		} else {
