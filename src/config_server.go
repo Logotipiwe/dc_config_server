@@ -44,12 +44,86 @@ func main() {
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			} else {
 				fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-				fmt.Fprintf(w, getAdminPage())
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
+				fmt.Fprint(w, getAdminPage())
 			}
 		} else {
 			getLoginForm(w)
 		}
+	})
+
+	http.HandleFunc("/create-service", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		name := r.PostFormValue("name")
+		service := NewService(name)
+		service.save()
+		toIndex(w, r)
+	})
+
+	http.HandleFunc("/create-prop", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		serviceId := r.PostFormValue("service")
+		namespaceId := r.PostFormValue("namespace")
+		name := r.PostFormValue("name")
+		value := r.PostFormValue("value")
+
+		prop := NewProperty(name, value, namespaceId, serviceId)
+		err := prop.save()
+		if err != nil {
+			println(fmt.Printf("Error saving prop: %v", err))
+		}
+
+		toIndex(w, r)
+	})
+
+	http.HandleFunc("/delete-prop", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		id := r.PostFormValue("id")
+		err := DeleteProperty(id)
+		if err != nil {
+			println(err.Error())
+		}
+		toIndex(w, r)
+	})
+
+	http.HandleFunc("/save-prop", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		id := r.PostFormValue("id")
+		name := r.PostFormValue("name")
+		value := r.PostFormValue("value")
+		println(name + " --- " + value)
+		prop := GetProp(id)
+		prop.Name = name
+		prop.Value = value
+		err := prop.save()
+		if err != nil {
+			println(err.Error())
+		}
+		toIndex(w, r)
+	})
+
+	http.HandleFunc("/activate-prop", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		id := r.PostFormValue("id")
+		prop := GetProp(id)
+		prop.Active = true
+		err := prop.save()
+		if err != nil {
+			println(err.Error())
+		}
+		toIndex(w, r)
+	})
+
+	http.HandleFunc("/deactivate-prop", func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		id := r.PostFormValue("id")
+		prop := GetProp(id)
+		prop.Active = false
+		err := prop.save()
+		if err != nil {
+			println(err.Error())
+		}
+		toIndex(w, r)
 	})
 
 	//http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
@@ -62,18 +136,22 @@ func main() {
 		token := exchangeCodeToToken(r, code)
 		setATCookie(w, token)
 		println(token)
-		http.Redirect(w, r, "/", 302)
+		toIndex(w, r)
 	})
 
 	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		setATCookie(w, "")
-		http.Redirect(w, r, "/", 302)
+		toIndex(w, r)
 	})
 
 	err := http.ListenAndServe(":"+os.Getenv("CONTAINER_PORT"), nil)
 	if err != nil {
 		panic("Lol server fell")
 	}
+}
+
+func toIndex(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/", 302)
 }
 
 func getLoginForm(w http.ResponseWriter) {

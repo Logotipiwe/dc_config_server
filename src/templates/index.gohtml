@@ -1,6 +1,6 @@
 <h2>THIS IS CONFIG SERVER!!</h2>
 <div id="service-create-form">
-    <form method="post" action="/create-service">
+    <form method="post" action="create-service">
         <label>
             Create service:
             <input placeholder="Name..." name="name">
@@ -13,59 +13,86 @@
         Service
         <select>
             <option value="*">all</option>
-            <option value="service-one">service-one</option>
-            <option value="service-two">service-two</option>
+            {{ range .Services }}
+                <option value="{{.Id}}">{{.Name}}</option>
+            {{end}}
         </select>
     </label>
-<!--    <input type="submit" value="choose service">-->
 </div>
 <div id="namespace-select-form">
     <label>
         Namespace
         <select>
-            <option value="*">Default</option>
-            <option value="service-one">namespace-one</option>
-            <option value="service-two">namespace-two</option>
+            <option value="">Default</option>
+            {{ range .Namespaces }}
+                <option value="{{.Id}}">{{.Name}}</option>
+            {{end}}
         </select>
     </label>
-<!--    <input type="submit" value="choose namespace">-->
+    <!--    <input type="submit" value="choose namespace">-->
 </div>
 <h2>Properties:</h2>
+{{ range .Properties }}
 <div class="property">
-    <div class="service">keepbalance</div>
+    <div class="service">Service: {{ .ServiceName }}. Namespace: {{ .NamespaceName }}</div>
     <div class="data">
-        <input value="SOME_PROP">
-        <input value="value of this prop" class="prop-value">
-        <form action="/delete_prop" method="post" class="delete-prop">
-            <input type="hidden" name="id" value="364576572967386">
+        <form action="save-prop" method="post" class="save-prop">
+            <input type="hidden" name="id" value="{{.Id}}">
+            <input name="name" value="{{.Name}}" placeholder="Name...">
+            <input name="value" value="{{.Value}}" placeholder="Value..." class="prop-value">
+            <input type="submit" value="Save">
+        </form>
+        {{if .Active}}
+        <form action="deactivate-prop" method="post" class="deactivate-prop">
+            <input type="hidden" name="id" value="{{.Id}}">
+            <input type="submit" value="Deactivate">
+        </form>
+        {{else}}
+        <form action="activate-prop" method="post" class="activate-prop">
+            <input type="hidden" name="id" value="{{.Id}}">
+            <input type="submit" value="Activate">
+        </form>
+        {{end}}
+        <form action="delete-prop" method="post" class="delete-prop">
+            <input type="hidden" name="id" value="{{.Id}}">
             <input type="submit" value="Delete">
         </form>
     </div>
 </div>
-<div class="property">
+{{end}}
+{{/*<div class="property">
     <div class="service">log-comments</div>
     <div class="data">
         <input value="SOME_PROP_2" class="prop-name">
         <input value="value of this prop 222222" class="prop-value">
-        <form action="/delete_prop" method="post" class="delete-prop">
+        <form action="activate_prop" method="post" class="activate-prop">
+            <input type="hidden" name="id" value="364576572967386">
+            <input type="submit" value="Activate">
+        </form>
+        <form action="delete_prop" method="post" class="delete-prop">
             <input type="hidden" name="id" value="364576572967386">
             <input type="submit" value="Delete">
         </form>
     </div>
-</div>
-<form action="/create_prop" method="post" class="property creating">
+</div>*/}}
+<form action="create-prop" method="post" class="property creating">
     <div id="prop-create-meta-data">
         <label>
             Service:
             <select name="service">
-                <option value="comments">comments</option>
+                <option value="">All</option>
+                {{ range .Services }}
+                    <option value="{{.Id}}">{{.Name}}</option>
+                {{end}}
             </select>
         </label>
         <label>
             Namespace:
             <select name="namespace">
                 <option value="">Default</option>
-                <option value="dev">dev</option>
+                {{ range .Namespaces }}
+                    <option value="{{.Id}}">{{.Name}}</option>
+                {{end}}
             </select>
         </label>
     </div>
@@ -87,19 +114,19 @@
         padding: 10px;
         box-sizing: border-box;
         border: 1px lightgray solid;
-        width: 500px;
+        width: 600px;
         align-items: center;
         background-color: #fafafa;
     }
 
     .property .service {
-        width: 100%;
         justify-content: flex-start;
+        width: 100%
     }
 
     .property .data {
         display: flex;
-        width: 100%;
+        width: 100%
     }
 
     .property .data > * {
@@ -123,7 +150,7 @@
         margin-bottom: 10px;
     }
 
-    #prop-create-meta-data select{
+    select{
         width: 150px;
         padding: 3px 0;
     }
@@ -148,6 +175,24 @@
     .delete-prop input[type=submit]{
         background-color: orangered;
         color: white;
+    }
+
+    .deactivate-prop input[type=submit] {
+    }
+
+    .activate-prop input[type=submit] {
+        background-color: gray;
+        color: white;
+    }
+
+    .save-prop{
+        display: flex;
+    }
+
+    .save-prop input[type=submit] {
+        background-color: #0090c7;
+        color: white;
+        margin-left: 10px;
     }
 
     #service-create-form{
