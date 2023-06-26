@@ -151,7 +151,7 @@ func main() {
 }
 
 func toIndex(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/"+os.Getenv("SUBPATH"), 302)
+	http.Redirect(w, r, os.Getenv("SUBPATH"), 302)
 }
 
 func getLoginForm(w http.ResponseWriter) {
