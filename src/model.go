@@ -21,13 +21,18 @@ type Property struct {
 	Active      bool
 }
 
-func NewProperty(name, value, namespaceId, serviceId string) Property {
-	return Property{uuid.New().String(), name, value, namespaceId, serviceId, true}
+func CreateProperty(name, value, namespaceId, serviceId string) Property {
+	return NewProperty(uuid.NewString(), name, value, namespaceId, serviceId)
 }
 
-func NewService(name string) Service {
+func NewProperty(id, name, value, namespaceId, serviceId string) Property {
+	return Property{id, name, value, namespaceId, serviceId, true}
+}
+
+func CreateService(name string) Service {
 	return Service{uuid.New().String(), name}
 }
+
 func CreateNamespace(name string) Namespace {
 	return Namespace{uuid.New().String(), name}
 }

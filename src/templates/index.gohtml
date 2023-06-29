@@ -1,6 +1,6 @@
 <h2>THIS IS CONFIG SERVER!!</h2>
 <div id="service-create-form">
-    <form method="post" action="create-service">
+    <form method="post" action="api/create-service">
         <label>
             Create service:
             <input placeholder="Name..." name="name">
@@ -36,24 +36,24 @@
 <div class="property">
     <div class="service">Service: {{ .ServiceName }}. Namespace: {{ .NamespaceName }}</div>
     <div class="data">
-        <form action="save-prop" method="post" class="save-prop">
+        <form action="api/save-prop" method="post" class="save-prop">
             <input type="hidden" name="id" value="{{.Id}}">
             <input name="name" value="{{.Name}}" placeholder="Name...">
             <input name="value" value="{{.Value}}" placeholder="Value..." class="prop-value">
             <input type="submit" value="Save">
         </form>
         {{if .Active}}
-        <form action="deactivate-prop" method="post" class="deactivate-prop">
+        <form action="api/deactivate-prop" method="post" class="deactivate-prop">
             <input type="hidden" name="id" value="{{.Id}}">
             <input type="submit" value="Deactivate">
         </form>
         {{else}}
-        <form action="activate-prop" method="post" class="activate-prop">
+        <form action="api/activate-prop" method="post" class="activate-prop">
             <input type="hidden" name="id" value="{{.Id}}">
             <input type="submit" value="Activate">
         </form>
         {{end}}
-        <form action="delete-prop" method="post" class="delete-prop">
+        <form action="api/delete-prop" method="post" class="delete-prop">
             <input type="hidden" name="id" value="{{.Id}}">
             <input type="submit" value="Delete">
         </form>
@@ -65,17 +65,17 @@
     <div class="data">
         <input value="SOME_PROP_2" class="prop-name">
         <input value="value of this prop 222222" class="prop-value">
-        <form action="activate_prop" method="post" class="activate-prop">
+        <form action="api/activate_prop" method="post" class="activate-prop">
             <input type="hidden" name="id" value="364576572967386">
             <input type="submit" value="Activate">
         </form>
-        <form action="delete_prop" method="post" class="delete-prop">
+        <form action="api/delete_prop" method="post" class="delete-prop">
             <input type="hidden" name="id" value="364576572967386">
             <input type="submit" value="Delete">
         </form>
     </div>
 </div>*/}}
-<form action="create-prop" method="post" class="property creating">
+<form action="api/create-prop" method="post" class="property creating">
     <div id="prop-create-meta-data">
         <label>
             Service:

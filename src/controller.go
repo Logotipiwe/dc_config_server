@@ -1,23 +1,12 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	env "github.com/logotipiwe/dc_go_env_lib"
 	"net/http"
 	"net/url"
 	"os"
 )
-
-type User struct {
-	Sub        string `json:"sub"`
-	Name       string `json:"name"`
-	GivenName  string `json:"given_name"`
-	FamilyName string `json:"family_name"`
-	Picture    string `json:"picture"`
-	Locale     string `json:"locale"`
-}
 
 func main() {
 	adminId := os.Getenv("LOGOTIPIWE_GMAIL_ID")
@@ -53,7 +42,7 @@ func main() {
 	http.HandleFunc("/api/create-service", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		name := r.PostFormValue("name")
-		service := NewService(name)
+		service := CreateService(name)
 		service.save()
 		toIndex(w, r)
 	})
@@ -65,7 +54,7 @@ func main() {
 		name := r.PostFormValue("name")
 		value := r.PostFormValue("value")
 
-		prop := NewProperty(name, value, namespaceId, serviceId)
+		prop := CreateProperty(name, value, namespaceId, serviceId)
 		err := prop.save()
 		if err != nil {
 			println(fmt.Printf("Error saving prop: %v", err))
@@ -131,32 +120,5 @@ func main() {
 }
 
 func toIndex(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, os.Getenv("SUBPATH"), 302)
-}
-
-func getLoginForm(w http.ResponseWriter) {
-	loginUrl, _ := url.Parse(env.GetCurrUrl() + "/oauth2/auth")
-	q := loginUrl.Query()
-	q.Set("redirect", env.GetCurrUrl()+env.GetSubpath())
-	loginUrl.RawQuery = q.Encode()
-
-	fmt.Fprintf(w, "<a href='%s'>%s</a>", loginUrl.String(), loginUrl.String())
-}
-
-func getUserData(accessToken string) (User, error) {
-	bearer := "Bearer " + accessToken
-	getUrl := "https://www.googleapis.com/oauth2/v3/userinfo"
-	request, _ := http.NewRequest("GET", getUrl, nil)
-	request.Header.Add("Authorization", bearer)
-
-	client := &http.Client{}
-	res, _ := client.Do(request)
-	defer res.Body.Close()
-	var answer User
-	json.NewDecoder(res.Body).Decode(&answer)
-	if answer.Sub != "" {
-		return answer, nil
-	} else {
-		return answer, errors.New("WTF HUH")
-	}
+	http.Redirect(w, r, env.GetSubpath(), 302)
 }
