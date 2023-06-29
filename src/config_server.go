@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	env "github.com/logotipiwe/dc_go_env_lib"
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 )
-
-const clientId = "319710408255-ntkf14k8ruk4p98sn2u1ho4j99rpjqja.apps.googleusercontent.com"
 
 type User struct {
 	Sub        string `json:"sub"`
@@ -44,7 +42,7 @@ func main() {
 				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
 			} else {
 				fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
+				fmt.Fprintf(w, "<a href='/oauth2/logout?redirect=%v'>Log out</a>", url.QueryEscape(env.GetPathToApp()))
 				fmt.Fprint(w, getAdminPage())
 			}
 		} else {
@@ -52,7 +50,7 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/create-service", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/create-service", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		name := r.PostFormValue("name")
 		service := NewService(name)
@@ -60,7 +58,7 @@ func main() {
 		toIndex(w, r)
 	})
 
-	http.HandleFunc("/create-prop", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/create-prop", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		serviceId := r.PostFormValue("service")
 		namespaceId := r.PostFormValue("namespace")
@@ -76,7 +74,7 @@ func main() {
 		toIndex(w, r)
 	})
 
-	http.HandleFunc("/delete-prop", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/delete-prop", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		id := r.PostFormValue("id")
 		err := DeleteProperty(id)
@@ -86,7 +84,7 @@ func main() {
 		toIndex(w, r)
 	})
 
-	http.HandleFunc("/save-prop", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/save-prop", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		id := r.PostFormValue("id")
 		name := r.PostFormValue("name")
@@ -102,7 +100,7 @@ func main() {
 		toIndex(w, r)
 	})
 
-	http.HandleFunc("/activate-prop", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/activate-prop", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		id := r.PostFormValue("id")
 		prop := GetProp(id)
@@ -114,7 +112,7 @@ func main() {
 		toIndex(w, r)
 	})
 
-	http.HandleFunc("/deactivate-prop", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/deactivate-prop", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		id := r.PostFormValue("id")
 		prop := GetProp(id)
@@ -123,24 +121,6 @@ func main() {
 		if err != nil {
 			println(err.Error())
 		}
-		toIndex(w, r)
-	})
-
-	//http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-	//	fmt.Fprintf(w, "%s://%s", getScheme(), r.Host)
-	//})
-
-	http.HandleFunc("/g_oauth", func(w http.ResponseWriter, r *http.Request) {
-		code := r.URL.Query().Get("code")
-		println("Code is: " + code)
-		token := exchangeCodeToToken(r, code)
-		setATCookie(w, token)
-		println(token)
-		toIndex(w, r)
-	})
-
-	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		setATCookie(w, "")
 		toIndex(w, r)
 	})
 
@@ -155,46 +135,12 @@ func toIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func getLoginForm(w http.ResponseWriter) {
-	loginUrl, _ := url.Parse("https://accounts.google.com/o/oauth2/v2/auth")
+	loginUrl, _ := url.Parse(env.GetCurrUrl() + "/oauth2/auth")
 	q := loginUrl.Query()
-
-	q.Set("client_id", clientId)
-	q.Set("redirect_uri", getCurrHost()+getSubpath()+"/g_oauth")
-	q.Set("response_type", "code")
-	q.Set("scope", "profile")
+	q.Set("redirect", env.GetCurrUrl()+env.GetSubpath())
 	loginUrl.RawQuery = q.Encode()
+
 	fmt.Fprintf(w, "<a href='%s'>%s</a>", loginUrl.String(), loginUrl.String())
-}
-
-func setATCookie(w http.ResponseWriter, token string) {
-	cookie := http.Cookie{
-		Name:     "access_token",
-		Value:    token,
-		HttpOnly: true,
-	}
-	http.SetCookie(w, &cookie)
-}
-
-func exchangeCodeToToken(r *http.Request, code string) string {
-	postUrl := "https://oauth2.googleapis.com/token"
-	data := url.Values{}
-	data.Set("client_id", clientId)
-	data.Set("client_secret", os.Getenv("G_OAUTH_CLIENT_SECRET"))
-	data.Set("code", code)
-	data.Set("grant_type", "authorization_code")
-	data.Set("redirect_uri", getCurrHost()+getSubpath()+"/g_oauth")
-	client := &http.Client{}
-	req, _ := http.NewRequest(http.MethodPost, postUrl, strings.NewReader(data.Encode())) // URL-encoded payload
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	resp, _ := client.Do(req)
-	defer resp.Body.Close()
-	var answer map[string]string
-	json.NewDecoder(resp.Body).Decode(&answer)
-	if resp.StatusCode != 200 {
-		fmt.Printf("Got error while exchanging code to token. Status: %d. Body: %v", resp.StatusCode, answer)
-	}
-	return answer["access_token"]
 }
 
 func getUserData(accessToken string) (User, error) {
