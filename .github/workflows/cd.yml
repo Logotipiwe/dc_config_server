@@ -27,10 +27,11 @@ jobs:
       id: build_push
       run: |
         ls
-        export APP_NAME = config_server
+        export APP_NAME=config_server
         export IMAGE=${{ env.DOCKER_USER }}/${APP_NAME}:$(date +%s)
         docker build . -t ${IMAGE}
         docker push ${IMAGE}
+        echo "APP_NAME=${APP_NAME}" >> "$GITHUB_ENV"
         echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
     - name: Upload
       uses: garygrossgarten/github-action-scp@release
