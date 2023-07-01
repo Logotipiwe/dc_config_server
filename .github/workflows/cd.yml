@@ -53,5 +53,9 @@ jobs:
           export G_OAUTH_CLIENT_SECRET=${{ env.G_OAUTH_CLIENT_SECRET }}
           export OUTER_SCHEME=${{ env.OUTER_SCHEME }}
           export OUTER_HOST=${{ env.OUTER_HOST }}
+          export DB_HOST=${{ env.DB_HOST }}
+          export DB_LOGIN=${{ env.DB_LOGIN }}
+          export DB_PASS=${{ env.DB_PASS }}
+          export DB_NAME=${{ env.DB_NAME }}
           docker-compose -f /kuber/config_server/config_server.yml down --remove-orphans
           docker-compose -f /kuber/config_server/config_server.yml up -d
