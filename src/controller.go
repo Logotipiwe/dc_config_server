@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	env "github.com/logotipiwe/dc_go_env_lib"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,7 +13,10 @@ func main() {
 	adminId := os.Getenv("LOGOTIPIWE_GMAIL_ID")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-		fmt.Fprintf(w, "Hello, you've requested: %s</br>", r.URL.Path)
+		_, err := fmt.Fprintf(w, "Hello, you've requested: %s</br>", r.URL.Path)
+		if err != nil {
+			log.Fatalln(err)
+		}
 		cookie, _ := r.Cookie("access_token")
 		var accessToken string
 		if cookie != nil {
@@ -27,12 +31,23 @@ func main() {
 				return
 			}
 			if userData.Sub != adminId {
-				fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br>", userData.Name)
-				fmt.Fprintf(w, "<a href='/logout'>Log out</a>")
+				_, err := fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='/logout'>Log out</a>", userData.Name)
+				if err != nil {
+					log.Fatalln(err)
+				}
 			} else {
-				fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-				fmt.Fprintf(w, "<a href='/oauth2/logout?redirect=%v'>Log out</a>", url.QueryEscape(env.GetPathToApp()))
-				fmt.Fprint(w, getAdminPage())
+				_, err := fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
+				if err != nil {
+					log.Fatalln(err)
+				}
+				_, err = fmt.Fprintf(w, "<a href='/oauth2/logout?redirect=%v'>Log out</a>", url.QueryEscape(env.GetPathToApp()))
+				if err != nil {
+					log.Fatalln(err)
+				}
+				_, err = fmt.Fprint(w, getAdminPage())
+				if err != nil {
+					log.Fatalln(err)
+				}
 			}
 		} else {
 			getLoginForm(w)
@@ -40,33 +55,48 @@ func main() {
 	})
 
 	http.HandleFunc("/api/create-service", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		name := r.PostFormValue("name")
 		service := CreateService(name)
-		service.save()
+		err = service.save()
+		if err != nil {
+			println(fmt.Sprintf("Error saving service, %v", err.Error()))
+		} else {
+			println(fmt.Sprintf("Service with name %v created!", name))
+		}
 		toIndex(w, r)
 	})
 
 	http.HandleFunc("/api/create-prop", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		serviceId := r.PostFormValue("service")
 		namespaceId := r.PostFormValue("namespace")
 		name := r.PostFormValue("name")
 		value := r.PostFormValue("value")
 
 		prop := CreateProperty(name, value, namespaceId, serviceId)
-		err := prop.save()
+		err = prop.save()
 		if err != nil {
-			println(fmt.Printf("Error saving prop: %v", err))
+			println(fmt.Sprintf("Error saving prop: %v", err))
 		}
+		println(fmt.Sprintf("Prop created!"))
 
 		toIndex(w, r)
 	})
 
 	http.HandleFunc("/api/delete-prop", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		id := r.PostFormValue("id")
-		err := DeleteProperty(id)
+		err = DeleteProperty(id)
 		if err != nil {
 			println(err.Error())
 		}
@@ -74,7 +104,10 @@ func main() {
 	})
 
 	http.HandleFunc("/api/save-prop", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		id := r.PostFormValue("id")
 		name := r.PostFormValue("name")
 		value := r.PostFormValue("value")
@@ -82,7 +115,7 @@ func main() {
 		prop := GetProp(id)
 		prop.Name = name
 		prop.Value = value
-		err := prop.save()
+		err = prop.save()
 		if err != nil {
 			println(err.Error())
 		}
@@ -90,11 +123,14 @@ func main() {
 	})
 
 	http.HandleFunc("/api/activate-prop", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		id := r.PostFormValue("id")
 		prop := GetProp(id)
 		prop.Active = true
-		err := prop.save()
+		err = prop.save()
 		if err != nil {
 			println(err.Error())
 		}
@@ -102,11 +138,14 @@ func main() {
 	})
 
 	http.HandleFunc("/api/deactivate-prop", func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
 		id := r.PostFormValue("id")
 		prop := GetProp(id)
 		prop.Active = false
-		err := prop.save()
+		err = prop.save()
 		if err != nil {
 			println(err.Error())
 		}

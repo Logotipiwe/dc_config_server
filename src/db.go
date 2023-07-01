@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	env "github.com/logotipiwe/dc_go_env_lib"
+	"log"
 )
 import _ "github.com/go-sql-driver/mysql"
 
@@ -16,9 +18,15 @@ type PropResult struct {
 }
 
 func ConnectDb() *sql.DB {
-	db, err := sql.Open("mysql", "root:1234@/config_server") //TODO externalize
+	println("Database connected!")
+	connectionStr := fmt.Sprintf("%v:%v@tcp(%v)/%v", env.GetDbLogin(), env.GetDbPassword(),
+		env.GetDbHost(), env.GetDbName())
+	db, err := sql.Open("mysql", connectionStr)
 	if err != nil {
 		panic(err)
+	}
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
 	}
 	return db
 }
@@ -36,7 +44,9 @@ func nullable(s string) sql.NullString {
 func (service *Service) save() error {
 	db := ConnectDb()
 	_, err := db.Exec("insert into services (id, name) values (?, ?);", service.Id, service.Name)
-	fmt.Printf("Servie with name %s saved!", service.Name)
+	if err == nil {
+		fmt.Printf("Servie with name %s saved!", service.Name)
+	}
 	return err
 }
 
@@ -99,8 +109,12 @@ func GetAllProps() ([]Property, error) {
 func GetProp(id string) Property {
 	db := ConnectDb()
 	var r PropResult
-	db.QueryRow("SELECT id,service,namespace,is_active,name,`value` FROM config_entries WHERE id = ?",
+	err := db.QueryRow("SELECT id,service,namespace,is_active,name,`value` FROM config_entries WHERE id = ?",
 		id).Scan(&r.Id, &r.ServiceId, &r.NamespaceId, &r.Active, &r.Name, &r.Value)
+	if err != nil {
+		log.Fatalln(err)
+		return Property{}
+	}
 	return toModel(r)
 }
 
