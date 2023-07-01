@@ -27,7 +27,8 @@ jobs:
       id: build_push
       run: |
         ls
-        export IMAGE=${{ env.DOCKER_USER }}/config_server:$(date +%s)
+        export APP_NAME = config_server
+        export IMAGE=${{ env.DOCKER_USER }}/${APP_NAME}:$(date +%s)
         docker build . -t ${IMAGE}
         docker push ${IMAGE}
         echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
@@ -57,5 +58,5 @@ jobs:
           export DB_LOGIN=${{ env.DB_LOGIN }}
           export DB_PASS=${{ env.DB_PASS }}
           export DB_NAME=${{ env.DB_NAME }}
-          docker-compose -f /kuber/config_server/config_server.yml down --remove-orphans
-          docker-compose -f /kuber/config_server/config_server.yml up -d
+          docker-compose -f /kuber/${APP_NAME}/${APP_NAME}.yml down --remove-orphans
+          docker-compose -f /kuber/${APP_NAME}/${APP_NAME}.yml up -d
