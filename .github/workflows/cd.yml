@@ -56,8 +56,7 @@ jobs:
           export OUTER_SCHEME=${{ env.OUTER_SCHEME }}
           export OUTER_HOST=${{ env.OUTER_HOST }}
           export DB_HOST=${{ env.DB_HOST }}
-          export DB_LOGIN=${{ env.DB_LOGIN }}
-          export DB_PASS=${{ env.DB_PASS }}
-          export DB_NAME=${{ env.DB_NAME }}
+          export DB_LOGIN=${{ env.DB_USER }}
+          export DB_PASS=${{ env.MYSQL_ROOT_PASSWORD }}
           docker-compose -f /kuber/${{ env.APP_NAME }}/${{ env.APP_NAME }}.yml down --remove-orphans
           docker-compose -f /kuber/${{ env.APP_NAME }}/${{ env.APP_NAME }}.yml up -d
