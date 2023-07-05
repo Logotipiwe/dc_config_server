@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Logotipiwe/dc_go_auth_lib/auth"
 	env "github.com/logotipiwe/dc_go_env_lib"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 func main() {
 	adminId := os.Getenv("LOGOTIPIWE_GMAIL_ID")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		println("/")
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		_, err := fmt.Fprintf(w, "Hello, you've requested: %s</br>", r.URL.Path)
 		if err != nil {
@@ -25,12 +27,12 @@ func main() {
 			accessToken = ""
 		}
 		if accessToken != "" {
-			userData, err := getUserData(accessToken)
+			userData, err := auth.FetchUserData(r)
 			if err != nil {
 				getLoginForm(w)
 				return
 			}
-			if userData.Sub != adminId {
+			if userData.Id != adminId {
 				_, err := fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='/logout'>Log out</a>", userData.Name)
 				if err != nil {
 					log.Fatalln(err)
@@ -152,6 +154,7 @@ func main() {
 		toIndex(w, r)
 	})
 
+	println("Ready")
 	err := http.ListenAndServe(":"+os.Getenv("CONTAINER_PORT"), nil)
 	if err != nil {
 		panic("Lol server fell")

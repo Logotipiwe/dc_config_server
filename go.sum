@@ -1,3 +1,5 @@
+github.com/Logotipiwe/dc_go_auth_lib v0.0.3 h1:GFMFpGEuudJcqENTjbya05l1AHDrL6Zxg1TPCljGl60=
+github.com/Logotipiwe/dc_go_auth_lib v0.0.3/go.mod h1:QFJO1SKst/yPgOQJysNMCw1RCqYTHOnm2rd8brZmr+k=
 github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
 github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
