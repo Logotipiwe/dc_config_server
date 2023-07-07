@@ -29,7 +29,6 @@
             {{end}}
         </select>
     </label>
-    <!--    <input type="submit" value="choose namespace">-->
 </div>
 <h2>Properties:</h2>
 {{ range .Properties }}
@@ -60,21 +59,6 @@
     </div>
 </div>
 {{end}}
-{{/*<div class="property">
-    <div class="service">log-comments</div>
-    <div class="data">
-        <input value="SOME_PROP_2" class="prop-name">
-        <input value="value of this prop 222222" class="prop-value">
-        <form action="api/activate_prop" method="post" class="activate-prop">
-            <input type="hidden" name="id" value="364576572967386">
-            <input type="submit" value="Activate">
-        </form>
-        <form action="api/delete_prop" method="post" class="delete-prop">
-            <input type="hidden" name="id" value="364576572967386">
-            <input type="submit" value="Delete">
-        </form>
-    </div>
-</div>*/}}
 <form action="api/create-prop" method="post" class="property creating">
     <div id="prop-create-meta-data">
         <label>
@@ -199,3 +183,6 @@
         margin-bottom: 20px;
     }
 </style>
+<script>
+    window.props = JSON.parse("{{ .PropsJson }}")
+</script>

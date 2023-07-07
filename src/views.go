@@ -1,5 +1,10 @@
 package main
 
+import (
+	"encoding/json"
+	. "github.com/logotipiwe/dc_go_utils/src"
+)
+
 type ServiceView struct {
 	Id   string
 	Name string
@@ -46,11 +51,24 @@ type IndexView struct {
 	Services   []ServiceView
 	Namespaces []NamespaceView
 	Properties []PropertyView
+	PropsJson  string
 }
 
-func CreateIndexView(props []Property, namespaces []Namespace, services []Service) IndexView {
+func CreateIndexView(props []Property, namespaces []Namespace, services []Service) (IndexView, error) {
 	nMap := toMap(namespaces, func(val Namespace) string { return val.Id })
 	sMap := toMap(services, func(s Service) string { return s.Id })
+	propViews := Map(props, func(p Property) PropertyView {
+		n := nMap[p.NamespaceId]
+		s := sMap[p.ServiceId]
+		return p.toView(n, s)
+	})
+	propDtos := Map(props, func(p Property) CSPropertyDto {
+		return p.toDto()
+	})
+	propsJson, err := json.Marshal(propDtos)
+	if err != nil {
+		return IndexView{}, err
+	}
 	return IndexView{
 		Services: Map(services, func(s Service) ServiceView {
 			return s.toView()
@@ -58,10 +76,7 @@ func CreateIndexView(props []Property, namespaces []Namespace, services []Servic
 		Namespaces: Map(namespaces, func(n Namespace) NamespaceView {
 			return n.toView()
 		}),
-		Properties: Map(props, func(p Property) PropertyView {
-			n := nMap[p.NamespaceId]
-			s := sMap[p.ServiceId]
-			return p.toView(n, s)
-		}),
-	}
+		Properties: propViews,
+		PropsJson:  string(propsJson),
+	}, nil
 }
