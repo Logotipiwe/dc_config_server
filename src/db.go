@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	env "github.com/logotipiwe/dc_go_env_lib"
@@ -237,15 +236,13 @@ func importProps(props []Property) error {
 		)
 	}
 
-	ctx := context.TODO()
-	tx, err := db.BeginTx(ctx, nil)
+	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, "delete from config_entries")
+	_, err = tx.Exec("delete from config_entries")
 	if err != nil {
 		tx.Rollback()
-		ctx.Done()
 		return err
 	}
 
@@ -260,13 +257,12 @@ func importProps(props []Property) error {
 		" VALUES %s", strings.Join(valuesStr, ","))
 
 	println("DONE")
-	_, err = tx.ExecContext(ctx, query, values...)
+	_, err = tx.Exec(query, values...)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	err = tx.Commit()
-	ctx.Done()
 	if err != nil {
 		return err
 	}
