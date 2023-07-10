@@ -1,3 +1,6 @@
+create database config_server;
+use config_server;
+
 create table namespaces
 (
     id   varchar(255) not null
