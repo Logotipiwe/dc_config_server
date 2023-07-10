@@ -2,6 +2,8 @@ github.com/Logotipiwe/dc_go_auth_lib v0.0.3 h1:GFMFpGEuudJcqENTjbya05l1AHDrL6Zxg
 github.com/Logotipiwe/dc_go_auth_lib v0.0.3/go.mod h1:QFJO1SKst/yPgOQJysNMCw1RCqYTHOnm2rd8brZmr+k=
 github.com/Logotipiwe/dc_go_auth_lib v0.0.5 h1:X8iUm4WXGqLpYgRzvRNC4pPD7ON8mEKefwzkqKMKTzs=
 github.com/Logotipiwe/dc_go_auth_lib v0.0.5/go.mod h1:QFJO1SKst/yPgOQJysNMCw1RCqYTHOnm2rd8brZmr+k=
+github.com/Logotipiwe/dc_go_auth_lib v0.0.6 h1:1yoweJTwcxlUdZDz7xkviTdeBomOqwmPiPUL9Ii7L/8=
+github.com/Logotipiwe/dc_go_auth_lib v0.0.6/go.mod h1:MQF1FZnYBsn+UuVM115Qq4QkmHC9S5iaoI6SALG+MRE=
 github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
 github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
@@ -10,3 +12,5 @@ github.com/logotipiwe/dc_go_env_lib v0.0.5 h1:h57uQxde4BCU7EBOYoAjNZJFSUNNFAe7pw
 github.com/logotipiwe/dc_go_env_lib v0.0.5/go.mod h1:HN8cGisuq49hkEj+A1uOXnvHcWPWWKq6mVE7yJpxlY4=
 github.com/logotipiwe/dc_go_utils v1.0.1 h1:8DvRVwCYjcBNLiU9snlSfzroKnbqAT4owvmTvE0sH4Q=
 github.com/logotipiwe/dc_go_utils v1.0.1/go.mod h1:DWXDE69F5qh2TlyZptm/9qijWDACE93GDz6bOYWqeQg=
+github.com/logotipiwe/dc_go_utils v1.0.3 h1:jk3G2Ah0e1x7pujJh/ac4T7p6yAxipyoVEpzbmJduSs=
+github.com/logotipiwe/dc_go_utils v1.0.3/go.mod h1:DWXDE69F5qh2TlyZptm/9qijWDACE93GDz6bOYWqeQg=

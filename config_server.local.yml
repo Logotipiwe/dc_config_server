@@ -18,6 +18,8 @@ services:
       SUBPATH: ${SUBPATH-/config_server}
       OUTER_SCHEME: http
       OUTER_HOST: localhost
+      IDP_HOST: http://idp
+      IDP_SUBPATH:
     ports:
       - 81:80
 networks:
