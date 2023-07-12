@@ -52,7 +52,6 @@ jobs:
         script: |
           export IMAGE=${{ env.IMAGE }}
           export LOGOTIPIWE_GMAIL_ID=${{ env.LOGOTIPIWE_GMAIL_ID }}
-#          export G_OAUTH_CLIENT_SECRET=${{ env.G_OAUTH_CLIENT_SECRET }}
           export G_OAUTH_CLIENT_SECRET=12345
           export OUTER_SCHEME=${{ env.OUTER_SCHEME }}
           export OUTER_HOST=${{ env.OUTER_HOST }}
