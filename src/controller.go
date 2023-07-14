@@ -184,9 +184,14 @@ func main() {
 	})
 
 	http.HandleFunc("/api/get-config", func(w http.ResponseWriter, r *http.Request) {
+		println("/get-props")
+		err := authAsMachine(r)
+		if err != nil {
+			w.WriteHeader(403)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		println("/get-props")
 		namespace := r.URL.Query().Get("namespace")
 		if namespace == "" {
 			w.WriteHeader(400)
@@ -216,9 +221,14 @@ func main() {
 
 	//TODO auth all requests
 	http.HandleFunc("/api/export", func(w http.ResponseWriter, r *http.Request) {
+		println("/export")
+		err := authAsMachine(r)
+		if err != nil {
+			w.WriteHeader(403)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		println("/export")
 		props, err := GetAllProps()
 		if err != nil {
 			handleErrInController(w, err)
@@ -235,11 +245,16 @@ func main() {
 
 	//TODO import services and namespaces
 	http.HandleFunc("/api/import", func(w http.ResponseWriter, r *http.Request) {
+		err := authAsMachine(r)
+		if err != nil {
+			w.WriteHeader(403)
+			return
+		}
 		if r.Method != "POST" {
 			handleBadRequest(w, errors.New("only post allowed"))
 		}
 		var data PropsAnswer
-		err := json.NewDecoder(r.Body).Decode(&data)
+		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
 			handleBadRequest(w, err)
 		}
@@ -281,4 +296,12 @@ func authAsAdmin(r *http.Request) (auth.DcUser, error) {
 		return userData, errors.New("not admin")
 	}
 	return userData, nil
+}
+func authAsMachine(r *http.Request) error {
+	mToken := config.GetConfig("M_TOKEN")
+	providedToken := r.URL.Query().Get("mToken")
+	if mToken != providedToken {
+		return errors.New("not a machine")
+	}
+	return nil
 }

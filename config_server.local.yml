@@ -20,6 +20,7 @@ services:
       OUTER_HOST: localhost
       IDP_HOST: http://idp
       IDP_SUBPATH:
+      M_TOKEN: ${M_TOKEN}
     ports:
       - 81:80
 networks:
