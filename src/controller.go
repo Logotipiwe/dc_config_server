@@ -7,6 +7,7 @@ import (
 	"github.com/Logotipiwe/dc_go_auth_lib/auth"
 	env "github.com/logotipiwe/dc_go_env_lib"
 	. "github.com/logotipiwe/dc_go_utils/src"
+	"github.com/logotipiwe/dc_go_utils/src/config"
 	"log"
 	"net/http"
 	"net/url"
@@ -19,6 +20,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	idpUrl := config.GetConfig("IDP_HOST") + config.GetConfig("IDP_SUBPATH")
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		println("/")
@@ -31,12 +33,13 @@ func main() {
 			getLoginForm(w)
 			return
 		}
+		logoutUrl := idpUrl + "/logout?redirect=" + url.QueryEscape(env.GetPathToApp())
 		if userData.Id != adminId {
-			fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='/logout'>Log out</a>", userData.Name)
+			fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='%s'>Log out</a>", userData.Name, logoutUrl)
 			return
 		}
 		fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
-		fmt.Fprintf(w, "<a href='/oauth2/logout?redirect=%v'>Log out</a>", url.QueryEscape(env.GetPathToApp()))
+		fmt.Fprintf(w, "<a href='%s'>Log out</a>", logoutUrl)
 		adminPage, err := getAdminPage()
 		if err != nil {
 			println(err.Error())
