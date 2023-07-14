@@ -33,6 +33,7 @@ func main() {
 		}
 		if userData.Id != adminId {
 			fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='/logout'>Log out</a>", userData.Name)
+			return
 		}
 		fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
 		fmt.Fprintf(w, "<a href='/oauth2/logout?redirect=%v'>Log out</a>", url.QueryEscape(env.GetPathToApp()))
@@ -179,6 +180,7 @@ func main() {
 			println("Error encoding props ;" + err.Error())
 		}
 	})
+
 	//TODO auth all requests
 	http.HandleFunc("/api/export", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -198,6 +200,7 @@ func main() {
 		}
 	})
 
+	//TODO import services and namespaces
 	http.HandleFunc("/api/import", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			handleBadRequest(w, errors.New("only post allowed"))
