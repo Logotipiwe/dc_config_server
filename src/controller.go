@@ -15,30 +15,30 @@ import (
 )
 
 func main() {
-	adminId := os.Getenv("LOGOTIPIWE_GMAIL_ID")
 	err := InitDb()
 	if err != nil {
 		panic(err)
 	}
 	idpUrl := config.GetConfig("IDP_HOST") + config.GetConfig("IDP_SUBPATH")
+	logoutUrl := idpUrl + "/logout?redirect=" + url.QueryEscape(env.GetPathToApp())
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		println("/")
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		fmt.Fprintf(w, "Hello, you've requested: %s</br>", r.URL.Path)
 
-		userData, err := auth.FetchUserData(r)
+		admin, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='%s'>Log out</a>", admin.Name, logoutUrl)
+			return
+		}
 		if err != nil {
 			println(err.Error())
 			getLoginForm(w)
 			return
 		}
-		logoutUrl := idpUrl + "/logout?redirect=" + url.QueryEscape(env.GetPathToApp())
-		if userData.Id != adminId {
-			fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='%s'>Log out</a>", userData.Name, logoutUrl)
-			return
-		}
-		fmt.Fprintf(w, "Welcome: %s!</br>", userData.Name)
+
+		fmt.Fprintf(w, "Welcome: %s!</br>", admin.Name)
 		fmt.Fprintf(w, "<a href='%s'>Log out</a>", logoutUrl)
 		adminPage, err := getAdminPage()
 		if err != nil {
@@ -51,7 +51,12 @@ func main() {
 
 	http.HandleFunc("/api/create-service", func(w http.ResponseWriter, r *http.Request) {
 		println("/create-service")
-		err := r.ParseForm()
+		_, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			toIndex(w, r)
+			return
+		}
+		err = r.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -68,7 +73,12 @@ func main() {
 
 	http.HandleFunc("/api/create-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/create-prop")
-		err := r.ParseForm()
+		_, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			toIndex(w, r)
+			return
+		}
+		err = r.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -89,7 +99,12 @@ func main() {
 
 	http.HandleFunc("/api/delete-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/delete-prop")
-		err := r.ParseForm()
+		_, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			toIndex(w, r)
+			return
+		}
+		err = r.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -103,7 +118,12 @@ func main() {
 
 	http.HandleFunc("/api/save-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/save-prop")
-		err := r.ParseForm()
+		_, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			toIndex(w, r)
+			return
+		}
+		err = r.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -123,7 +143,12 @@ func main() {
 
 	http.HandleFunc("/api/activate-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/activate-prop")
-		err := r.ParseForm()
+		_, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			toIndex(w, r)
+			return
+		}
+		err = r.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -139,7 +164,12 @@ func main() {
 
 	http.HandleFunc("/api/deactivate-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/deactivate-prop")
-		err := r.ParseForm()
+		_, err := authAsAdmin(r)
+		if err != nil && err.Error() == "not admin" {
+			toIndex(w, r)
+			return
+		}
+		err = r.ParseForm()
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -239,4 +269,16 @@ func handleBadRequest(w http.ResponseWriter, err error) {
 func handleErrInController(w http.ResponseWriter, err error) {
 	w.WriteHeader(500)
 	fmt.Fprintf(w, "{\"ok\": \"false\", \"err\":\"%s\"}", err.Error())
+}
+
+func authAsAdmin(r *http.Request) (auth.DcUser, error) {
+	adminId := config.GetConfig("LOGOTIPIWE_GMAIL_ID")
+	userData, err := auth.FetchUserData(r)
+	if err != nil {
+		return userData, err
+	}
+	if userData.Id != adminId {
+		return userData, errors.New("not admin")
+	}
+	return userData, nil
 }
