@@ -20,6 +20,7 @@ services:
       OUTER_HOST : ${OUTER_HOST}
       IDP_HOST: ${IDP_HOST-http://idp}
       IDP_SUBPATH: ${IDP_SUBPATH-}
+      M_TOKEN: ${M_TOKEN}
 #    ports:
 #      - 82:81
 networks:

@@ -58,5 +58,6 @@ jobs:
           export DB_HOST=${{ env.DB_HOST }}
           export DB_LOGIN=${{ env.DB_USER }}
           export DB_PASS=${{ env.MYSQL_ROOT_PASSWORD }}
+          export M_TOKEN=${{ env.M_TOKEN }}
           docker-compose -f /kuber/${{ env.APP_NAME }}/${{ env.APP_NAME }}.yml down --remove-orphans
           docker-compose -f /kuber/${{ env.APP_NAME }}/${{ env.APP_NAME }}.yml up -d
