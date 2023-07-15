@@ -259,6 +259,10 @@ func importConfig(namespaces []Namespace, services []Service, props []Property) 
 		tx.Rollback()
 		return err
 	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
 	fmt.Println("Import done successfully!")
 	return nil
 }
