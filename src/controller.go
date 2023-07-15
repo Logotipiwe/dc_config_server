@@ -303,6 +303,7 @@ func authAsMachine(r *http.Request) error {
 	mToken := config.GetConfig("M_TOKEN")
 	providedToken := r.URL.Query().Get("mToken")
 	if mToken != providedToken {
+		fmt.Println("Received wrong machine token. Received: " + providedToken)
 		return errors.New("not a machine")
 	}
 	return nil
