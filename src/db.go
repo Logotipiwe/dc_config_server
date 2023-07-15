@@ -142,7 +142,7 @@ func GetPropsByNamespaceAndService(namespaceName, serviceName string) ([]Propert
 	if isDefaultNamespace {
 		namespaceName = ""
 	}
-	rows, err := db.Query("select * from config_entries "+
+	rows, err := db.Query("select * from config_entries c "+
 		"where is_active AND ("+
 		"	(? = '' AND namespace is null)"+
 		"	OR (namespace = (select id from namespaces where namespaces.name = ?)) "+
@@ -150,6 +150,25 @@ func GetPropsByNamespaceAndService(namespaceName, serviceName string) ([]Propert
 		"AND ("+
 		"	service is null"+
 		"	OR (service = (select id from services where services.name = ?))"+
+		") and ("+
+		"	("+
+		"	(select count(*)"+
+		"		from config_entries c2"+
+		"		where c.namespace = c2.namespace"+
+		"		and c.name = c2.name"+
+		"		and c2.service is not null"+
+		"		and c2.is_active) > 0"+
+		"		AND c.service is not null"+
+		"	)"+
+		"	OR ("+
+		"		(select count(*)"+
+		"			from config_entries c2"+
+		"			where c.namespace = c2.namespace"+
+		"			and c.name = c2.name"+
+		"			and c2.service is not null"+
+		"			and c2.is_active) = 0"+
+		"		AND c.service is null"+
+		"	)"+
 		")", namespaceName, namespaceName, serviceName)
 	if err != nil {
 		return nil, err

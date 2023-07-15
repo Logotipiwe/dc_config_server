@@ -187,6 +187,8 @@ func main() {
 		println("/get-props")
 		err := authAsMachine(r)
 		if err != nil {
+			fmt.Println("Error when getting props. Cannot auth as machine")
+			fmt.Println(err.Error())
 			w.WriteHeader(403)
 			return
 		}
