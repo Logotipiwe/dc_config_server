@@ -281,7 +281,9 @@ func main() {
 	})
 
 	println("Ready")
-	err = http.ListenAndServe(":"+os.Getenv("CONTAINER_PORT"), nil)
+	port := os.Getenv("CONTAINER_PORT")
+	fmt.Println("Inner port is " + port)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		panic("Lol server fell")
 	}
