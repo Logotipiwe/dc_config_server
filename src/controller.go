@@ -235,11 +235,22 @@ func main() {
 		if err != nil {
 			handleErrInController(w, err)
 		}
+		namespaces, err := GetAllNamespaces()
+		if err != nil {
+			handleErrInController(w, err)
+			return
+		}
+		services, err := GetAllServices()
+		if err != nil {
+			handleErrInController(w, err)
+			return
+		}
 
-		dtos := Map(props, func(p Property) CSPropertyDto {
-			return p.toDto()
-		})
-		err = json.NewEncoder(w).Encode(PropsAnswer{dtos})
+		namespaceDtos := Map(namespaces, func(n Namespace) NamespaceDto { return n.toDto() })
+		serviceDtos := Map(services, func(s Service) ServiceDto { return s.toDto() })
+		propsDtos := Map(props, func(p Property) CSPropertyDto { return p.toDto() })
+
+		err = json.NewEncoder(w).Encode(ImportExportAnswer{namespaceDtos, serviceDtos, propsDtos})
 		if err != nil {
 			handleErrInController(w, err)
 		}
@@ -255,13 +266,15 @@ func main() {
 		if r.Method != "POST" {
 			handleBadRequest(w, errors.New("only post allowed"))
 		}
-		var data PropsAnswer
+		var data ImportExportAnswer
 		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
 			handleBadRequest(w, err)
 		}
+		namespaces := Map(data.Namespaces, func(n NamespaceDto) Namespace { return n.toModel() })
+		services := Map(data.Services, func(s ServiceDto) Service { return s.toModel() })
 		models := Map(data.Props, csPropToModel)
-		err = importProps(models)
+		err = importConfig(namespaces, services, models)
 		if err != nil {
 			handleErrInController(w, err)
 		}

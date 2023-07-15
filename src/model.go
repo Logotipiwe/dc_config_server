@@ -26,8 +26,20 @@ type Property struct {
 
 type CSPropertyDto DcPropertyDto
 
-type PropsAnswer struct {
-	Props []CSPropertyDto `json:"props"`
+type NamespaceDto struct {
+	Id   string
+	Name string
+}
+
+type ServiceDto struct {
+	Id   string
+	Name string
+}
+
+type ImportExportAnswer struct {
+	Namespaces []NamespaceDto  `json:"namespaces"`
+	Services   []ServiceDto    `json:"services"`
+	Props      []CSPropertyDto `json:"props"`
 }
 
 func CreateProperty(name, value, namespaceId, serviceId string) Property {
@@ -57,6 +69,20 @@ func (p Property) toDto() CSPropertyDto {
 	}
 }
 
+func (s *Service) toDto() ServiceDto {
+	return ServiceDto{
+		Id:   s.Id,
+		Name: s.Name,
+	}
+}
+
+func (s *Namespace) toDto() NamespaceDto {
+	return NamespaceDto{
+		Id:   s.Id,
+		Name: s.Name,
+	}
+}
+
 func csPropToModel(p CSPropertyDto) Property {
 	return p.toModel()
 }
@@ -69,5 +95,19 @@ func (p CSPropertyDto) toModel() Property {
 		NamespaceId: p.NamespaceId,
 		ServiceId:   p.ServiceId,
 		Active:      p.Active,
+	}
+}
+
+func (s ServiceDto) toModel() Service {
+	return Service{
+		Id:   s.Id,
+		Name: s.Name,
+	}
+}
+
+func (n NamespaceDto) toModel() Namespace {
+	return Namespace{
+		Id:   n.Id,
+		Name: n.Name,
 	}
 }

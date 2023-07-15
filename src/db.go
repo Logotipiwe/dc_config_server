@@ -5,7 +5,6 @@ import (
 	"fmt"
 	env "github.com/logotipiwe/dc_go_env_lib"
 	. "github.com/logotipiwe/dc_go_utils/src"
-	"math/rand"
 	"strings"
 )
 import _ "github.com/go-sql-driver/mysql"
@@ -39,22 +38,7 @@ func InitDb() error {
 	return nil
 }
 
-/*func ConnectDb() (*sql.DB, error) {
-	connectionStr := fmt.Sprintf("%v:%v@tcp(%v)/%v", env.GetDbLogin(), env.GetDbPassword(),
-		env.GetDbHost(), env.GetDbName())
-	db, err := sql.Open("mysql", connectionStr)
-	if err != nil {
-		panic(err)
-	}
-	if err := db.Ping(); err != nil {
-		println(fmt.Sprintf("Error connecting database: %s", err))
-		return nil, err
-	}
-	println("Database connected!")
-	return db, nil
-}*/
-
-func nullable(s string) sql.NullString {
+func toNullable(s string) sql.NullString {
 	if len(s) == 0 {
 		return sql.NullString{}
 	}
@@ -225,7 +209,7 @@ func (p Property) save() error {
 		}
 	} else {
 		_, err := db.Exec("insert into config_entries (id, service, namespace, name, value) "+
-			"VALUES (?,?,?,?,?)", p.Id, nullable(p.ServiceId), nullable(p.NamespaceId), p.Name, p.Value)
+			"VALUES (?,?,?,?,?)", p.Id, toNullable(p.ServiceId), toNullable(p.NamespaceId), p.Name, p.Value)
 		if err != nil {
 			println(err)
 			return err
@@ -239,7 +223,71 @@ func DeleteProperty(id string) error {
 	return err
 }
 
-func importProps(props []Property) error {
+func importConfig(namespaces []Namespace, services []Service, props []Property) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	err = clearProps(tx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = clearNamespaces(tx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = clearServices(tx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = importNamespaces(tx, namespaces)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = importServices(tx, services)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = importProps(tx, props)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	fmt.Println("Import done successfully!")
+	return nil
+}
+
+func clearProps(tx *sql.Tx) error {
+	_, err := tx.Exec("delete from config_entries")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func clearNamespaces(tx *sql.Tx) error {
+	_, err := tx.Exec("delete from namespaces")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func clearServices(tx *sql.Tx) error {
+	_, err := tx.Exec("delete from services")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func importProps(tx *sql.Tx, props []Property) error {
 	var valuesStr []string
 	var values []interface{}
 
@@ -249,42 +297,71 @@ func importProps(props []Property) error {
 			prop.Id,
 			prop.Name,
 			prop.Value,
-			prop.NamespaceId,
-			prop.ServiceId,
+			toNullable(prop.NamespaceId),
+			toNullable(prop.ServiceId),
 			prop.Active,
 		)
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	_, err = tx.Exec("delete from config_entries")
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if rand.Intn(10) > 5 {
-		err = tx.Rollback()
-		if err != nil {
-			return err
-		}
-		return nil
-	}
 	query := fmt.Sprintf("INSERT INTO config_entries (id, name, value, namespace, service, is_active)"+
 		" VALUES %s", strings.Join(valuesStr, ","))
 
-	println("DONE")
-	_, err = tx.Exec(query, values...)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	err = tx.Commit()
+	_, err := tx.Exec(query, values...)
 	if err != nil {
 		return err
 	}
 
+	println("Props imported successfully")
+	return nil
+}
+
+func importNamespaces(tx *sql.Tx, namespaces []Namespace) error {
+	var valuesStr []string
+	var values []interface{}
+
+	for _, namespace := range namespaces {
+		valuesStr = append(valuesStr, "(?,?)")
+		values = append(values,
+			namespace.Id,
+			namespace.Name,
+		)
+	}
+
+	_, err := tx.Exec("delete from namespaces")
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf("INSERT INTO namespaces (id, name) VALUES %s", strings.Join(valuesStr, ","))
+
+	_, err = tx.Exec(query, values...)
+	if err != nil {
+		return err
+	}
+
+	println("Namespaces imported successfully")
+	return nil
+}
+
+func importServices(tx *sql.Tx, services []Service) error {
+	var valuesStr []string
+	var values []interface{}
+
+	for _, service := range services {
+		valuesStr = append(valuesStr, "(?,?)")
+		values = append(values,
+			service.Id,
+			service.Name,
+		)
+	}
+
+	query := fmt.Sprintf("INSERT INTO services (id, name) VALUES %s", strings.Join(valuesStr, ","))
+
+	_, err := tx.Exec(query, values...)
+	if err != nil {
+		return err
+	}
+
+	println("Services imported successfully")
 	return nil
 }
