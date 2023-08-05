@@ -307,7 +307,7 @@ func main() {
 }
 
 func toIndex(w http.ResponseWriter, r *http.Request) {
-	url := env.GetCurrUrl()
+	url := env.GetCurrUrl() + env.GetSubpath()
 	http.Redirect(w, r, url, 302)
 }
 

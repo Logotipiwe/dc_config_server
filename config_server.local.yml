@@ -21,7 +21,7 @@ services:
 #      IDP_HOST: http://idp
 #      IDP_SUBPATH:
       M_TOKEN: ${M_TOKEN}
-      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_SECRET: ${CONFIG_SERVER_AUTH_SECRET}
     ports:
       - 81:80
 networks:

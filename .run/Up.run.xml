@@ -9,6 +9,10 @@
               <option name="name" value="OUTER_PORT" />
               <option name="value" value="80" />
             </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="SUBPATH" />
+              <option name="value" value="/config_server" />
+            </DockerEnvVarImpl>
           </list>
         </option>
         <option name="commandLineOptions" value="--build" />
