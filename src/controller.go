@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Logotipiwe/dc_go_auth_lib/auth"
 	env "github.com/logotipiwe/dc_go_env_lib"
 	. "github.com/logotipiwe/dc_go_utils/src"
 	"github.com/logotipiwe/dc_go_utils/src/config"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 )
 
@@ -19,27 +17,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	idpUrl := config.GetConfig("IDP_HOST") + config.GetConfig("IDP_SUBPATH")
-	logoutUrl := idpUrl + "/logout?redirect=" + url.QueryEscape(env.GetPathToApp())
+	logoutUrl := "/api/logout"
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		println("/")
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 		fmt.Fprintf(w, "Hello, you've requested: %s</br>", r.URL.Path)
 
-		admin, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
-			fmt.Fprintf(w, "Sorry, %s, you are not admin here!</br> <a href='%s'>Log out</a>", admin.Name, logoutUrl)
-			return
-		}
+		err := authAsAdmin(r)
 		if err != nil {
 			println(err.Error())
 			getLoginForm(w)
 			return
 		}
 
-		fmt.Fprintf(w, "Welcome: %s!</br>", admin.Name)
-		fmt.Fprintf(w, "<a href='%s'>Log out</a>", logoutUrl)
+		fmt.Fprintf(w, "Welcome admin!</br>")
+		fmt.Fprintf(w, "<a href='%s'>Log out</a>", config.GetConfig("SUBPATH")+logoutUrl)
 		adminPage, err := getAdminPage()
 		if err != nil {
 			println(err.Error())
@@ -51,8 +44,8 @@ func main() {
 
 	http.HandleFunc("/api/create-service", func(w http.ResponseWriter, r *http.Request) {
 		println("/create-service")
-		_, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
+		err := authAsAdmin(r)
+		if err != nil {
 			toIndex(w, r)
 			return
 		}
@@ -73,8 +66,8 @@ func main() {
 
 	http.HandleFunc("/api/create-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/create-prop")
-		_, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
+		err := authAsAdmin(r)
+		if err != nil {
 			toIndex(w, r)
 			return
 		}
@@ -99,8 +92,8 @@ func main() {
 
 	http.HandleFunc("/api/delete-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/delete-prop")
-		_, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
+		err := authAsAdmin(r)
+		if err != nil {
 			toIndex(w, r)
 			return
 		}
@@ -118,8 +111,8 @@ func main() {
 
 	http.HandleFunc("/api/save-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/save-prop")
-		_, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
+		err := authAsAdmin(r)
+		if err != nil {
 			toIndex(w, r)
 			return
 		}
@@ -143,8 +136,8 @@ func main() {
 
 	http.HandleFunc("/api/activate-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/activate-prop")
-		_, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
+		err := authAsAdmin(r)
+		if err != nil {
 			toIndex(w, r)
 			return
 		}
@@ -164,8 +157,8 @@ func main() {
 
 	http.HandleFunc("/api/deactivate-prop", func(w http.ResponseWriter, r *http.Request) {
 		println("/deactivate-prop")
-		_, err := authAsAdmin(r)
-		if err != nil && err.Error() == "not admin" {
+		err := authAsAdmin(r)
+		if err != nil {
 			toIndex(w, r)
 			return
 		}
@@ -186,8 +179,9 @@ func main() {
 	http.HandleFunc("/api/get-config", func(w http.ResponseWriter, r *http.Request) {
 		println("/get-props")
 		err := authAsMachine(r)
-		if err != nil {
-			fmt.Println("Error when getting props. Cannot auth as machine")
+		err2 := authAsAdmin(r)
+		if err != nil && err2 != nil {
+			fmt.Println("Error when getting props. Cannot auth as machine, neither as admin")
 			fmt.Println(err.Error())
 			w.WriteHeader(403)
 			return
@@ -225,7 +219,8 @@ func main() {
 	http.HandleFunc("/api/export", func(w http.ResponseWriter, r *http.Request) {
 		println("/export")
 		err := authAsMachine(r)
-		if err != nil {
+		err2 := authAsAdmin(r)
+		if err != nil && err2 != nil {
 			w.WriteHeader(403)
 			return
 		}
@@ -256,10 +251,10 @@ func main() {
 		}
 	})
 
-	//TODO import services and namespaces
 	http.HandleFunc("/api/import", func(w http.ResponseWriter, r *http.Request) {
 		err := authAsMachine(r)
-		if err != nil {
+		err2 := authAsAdmin(r)
+		if err != nil && err2 != nil {
 			w.WriteHeader(403)
 			return
 		}
@@ -280,17 +275,40 @@ func main() {
 		}
 	})
 
+	http.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
+		err = r.ParseForm()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		secret := r.PostFormValue("cs_login")
+		if secret != config.GetConfig("AUTH_SECRET") {
+			fmt.Println("Wrong secret: ", secret)
+		} else {
+			setSecretToCookie(w, secret)
+		}
+		toIndex(w, r)
+	})
+
+	http.HandleFunc(logoutUrl, func(w http.ResponseWriter, r *http.Request) {
+		err := authAsAdmin(r)
+		if err == nil {
+			setSecretToCookie(w, "")
+		}
+		toIndex(w, r)
+	})
+
 	println("Ready")
 	port := os.Getenv("CONTAINER_PORT")
 	fmt.Println("Inner port is " + port)
 	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		panic("Lol server fell")
+		panic(err)
 	}
 }
 
 func toIndex(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, env.GetSubpath(), 302)
+	url := env.GetCurrUrl()
+	http.Redirect(w, r, url, 302)
 }
 
 func handleBadRequest(w http.ResponseWriter, err error) {
@@ -301,24 +319,4 @@ func handleBadRequest(w http.ResponseWriter, err error) {
 func handleErrInController(w http.ResponseWriter, err error) {
 	w.WriteHeader(500)
 	fmt.Fprintf(w, "{\"ok\": \"false\", \"err\":\"%s\"}", err.Error())
-}
-
-func authAsAdmin(r *http.Request) (auth.DcUser, error) {
-	adminId := config.GetConfig("LOGOTIPIWE_GMAIL_ID")
-	userData, err := auth.FetchUserData(r)
-	if err != nil {
-		return userData, err
-	}
-	if userData.Id != adminId {
-		return userData, errors.New("not admin")
-	}
-	return userData, nil
-}
-func authAsMachine(r *http.Request) error {
-	mToken := config.GetConfig("M_TOKEN")
-	providedToken := r.URL.Query().Get("mToken")
-	if mToken != providedToken {
-		return errors.New("not a machine")
-	}
-	return nil
 }

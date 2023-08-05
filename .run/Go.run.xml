@@ -1,0 +1,23 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Go" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="dc_config_server" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="AUTH_SECRET" value="123" />
+      <env name="CONTAINER_PORT" value="3000" />
+      <env name="DB_HOST" value="localhost" />
+      <env name="DB_LOGIN" value="root" />
+      <env name="DB_NAME" value="config_server" />
+      <env name="DB_PASS" value="1234" />
+      <env name="OUTER_PORT" value="3000" />
+      <env name="SUBPATH" value="" />
+      <env name="OUTER_SCHEME" value="http" />
+      <env name="OUTER_HOST" value="localhost" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="config_server/src" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/src/controller.go" />
+    <method v="2" />
+  </configuration>
+</component>

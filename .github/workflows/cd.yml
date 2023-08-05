@@ -51,13 +51,12 @@ jobs:
         port: 22
         script: |
           export IMAGE=${{ env.IMAGE }}
-          export LOGOTIPIWE_GMAIL_ID=${{ env.LOGOTIPIWE_GMAIL_ID }}
-          export G_OAUTH_CLIENT_SECRET=${{ env.G_OAUTH_CLIENT_SECRET }}
           export OUTER_SCHEME=${{ env.OUTER_SCHEME }}
           export OUTER_HOST=${{ env.OUTER_HOST }}
           export DB_HOST=${{ env.DB_HOST }}
           export DB_LOGIN=${{ env.DB_USER }}
           export DB_PASS=${{ env.MYSQL_ROOT_PASSWORD }}
           export M_TOKEN=${{ env.M_TOKEN }}
+          export AUTH_SECRET=${{ env.CONFIG_SERVER_AUTH_SECRET }}
           docker-compose -f /kuber/${{ env.APP_NAME }}/${{ env.APP_NAME }}.yml down --remove-orphans
           docker-compose -f /kuber/${{ env.APP_NAME }}/${{ env.APP_NAME }}.yml up -d

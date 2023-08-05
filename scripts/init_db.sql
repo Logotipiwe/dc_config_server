@@ -1,21 +1,21 @@
 create database config_server;
 use config_server;
 
-create table namespaces
+create table config_server.namespaces
 (
     id   varchar(255) not null
         primary key,
     name varchar(255) not null
 );
 
-create table services
+create table config_server.services
 (
     id   varchar(255) not null
         primary key,
     name varchar(255) not null
 );
 
-create table config_entries
+create table config_server.config_entries
 (
     id        varchar(255)         not null
         primary key,
