@@ -130,7 +130,7 @@ func GetPropsByNamespaceAndService(namespaceName, serviceName string) ([]Propert
 		"	("+
 		"	(select count(*)"+
 		"		from config_entries c2"+
-		"		where c.namespace = c2.namespace"+
+		"		where ((c.namespace = c2.namespace) OR (c.namespace IS NULL AND c2.namespace IS NULL))"+
 		"		and c.name = c2.name"+
 		"		and c2.service is not null"+
 		"		and c2.is_active) > 0"+
