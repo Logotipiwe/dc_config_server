@@ -118,14 +118,6 @@ func scanPropResult(rows *sql.Rows) (PropResult, error) {
 }
 
 func GetPropsByNamespaceAndService(namespaceName, serviceName string) ([]Property, error) {
-	isAllServices := serviceName == "*"
-	isDefaultNamespace := namespaceName == "default"
-	if isAllServices {
-		serviceName = ""
-	}
-	if isDefaultNamespace {
-		namespaceName = ""
-	}
 	rows, err := db.Query("select * from config_entries c "+
 		"where is_active AND ("+
 		"	(? = '' AND namespace is null)"+

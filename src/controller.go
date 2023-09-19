@@ -189,17 +189,7 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		namespace := r.URL.Query().Get("namespace")
-		if namespace == "" {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "{\"error\": \"namespace is empty\"}")
-			return
-		}
 		service := r.URL.Query().Get("service")
-		if service == "" {
-			w.WriteHeader(400)
-			fmt.Fprint(w, "{\"error\": \"service is empty\"}")
-			return
-		}
 		props, err := GetPropsByNamespaceAndService(namespace, service)
 		if err != nil {
 			println(fmt.Sprintf("Err getting props: %s", err.Error()))
@@ -308,6 +298,7 @@ func main() {
 
 func toIndex(w http.ResponseWriter, r *http.Request) {
 	url := env.GetCurrUrl() + env.GetSubpath()
+	fmt.Println("Redirecting to index " + url)
 	http.Redirect(w, r, url, 302)
 }
 
