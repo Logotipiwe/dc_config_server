@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test" type="GoTestRunConfiguration" factoryName="Go Test">
+    <module name="dc_config_server" />
+    <working_directory value="$PROJECT_DIR$/tests" />
+    <envs>
+      <env name="CS_URL" value="http://localhost:3000" />
+      <env name="M_TOKEN" value="4321" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="tests" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$" />
+    <framework value="gotest" />
+    <method v="2" />
+  </configuration>
+</component>

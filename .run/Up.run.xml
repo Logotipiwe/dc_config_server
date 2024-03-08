@@ -13,6 +13,10 @@
               <option name="name" value="SUBPATH" />
               <option name="value" value="/config_server" />
             </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="AUTH_SECRET" />
+              <option name="value" value="1234" />
+            </DockerEnvVarImpl>
           </list>
         </option>
         <option name="commandLineOptions" value="--build" />

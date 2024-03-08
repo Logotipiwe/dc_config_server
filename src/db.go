@@ -5,6 +5,7 @@ import (
 	"fmt"
 	env "github.com/logotipiwe/dc_go_env_lib"
 	. "github.com/logotipiwe/dc_go_utils/src"
+	"golang.org/x/exp/maps"
 	"strings"
 )
 import _ "github.com/go-sql-driver/mysql"
@@ -73,6 +74,20 @@ func GetAllServices() ([]Service, error) {
 	return services, nil
 }
 
+func GetServiceByName(name string) *Service {
+	services, err := GetAllServices()
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	for _, service := range services {
+		if service.Name == name {
+			return &service
+		}
+	}
+	return nil
+}
+
 func GetAllNamespaces() ([]Namespace, error) {
 	var namespaces []Namespace
 	rows, err := db.Query("SELECT * FROM namespaces")
@@ -89,6 +104,20 @@ func GetAllNamespaces() ([]Namespace, error) {
 	}
 	return namespaces, nil
 }
+
+func GetNamespaceByName(name string) *Namespace {
+	namespaces, err := GetAllNamespaces()
+	if err != nil {
+		return nil
+	}
+	for _, ns := range namespaces {
+		if ns.Name == name {
+			return &ns
+		}
+	}
+	return nil
+}
+
 func GetAllProps() ([]Property, error) {
 	var result []PropResult
 	rows, err := db.Query("SELECT id,service,namespace,is_active,name,`value` FROM config_entries")
@@ -118,34 +147,7 @@ func scanPropResult(rows *sql.Rows) (PropResult, error) {
 }
 
 func GetPropsByNamespaceAndService(namespaceName, serviceName string) ([]Property, error) {
-	rows, err := db.Query("select * from config_entries c "+
-		"where is_active AND ("+
-		"	(? = '' AND namespace is null)"+
-		"	OR (namespace = (select id from namespaces where namespaces.name = ?)) "+
-		") "+
-		"AND ("+
-		"	service is null"+
-		"	OR (service = (select id from services where services.name = ?))"+
-		") and ("+
-		"	("+
-		"	(select count(*)"+
-		"		from config_entries c2"+
-		"		where ((c.namespace = c2.namespace) OR (c.namespace IS NULL AND c2.namespace IS NULL))"+
-		"		and c.name = c2.name"+
-		"		and c2.service is not null"+
-		"		and c2.is_active) > 0"+
-		"		AND c.service is not null"+
-		"	)"+
-		"	OR ("+
-		"		(select count(*)"+
-		"			from config_entries c2"+
-		"			where c.namespace = c2.namespace"+
-		"			and c.name = c2.name"+
-		"			and c2.service is not null"+
-		"			and c2.is_active) = 0"+
-		"		AND c.service is null"+
-		"	)"+
-		")", namespaceName, namespaceName, serviceName)
+	rows, err := db.Query("select * from config_entries c where is_active")
 	if err != nil {
 		return nil, err
 	}
@@ -157,10 +159,43 @@ func GetPropsByNamespaceAndService(namespaceName, serviceName string) ([]Propert
 		}
 		res = append(res, p)
 	}
-	properties := Map(res, func(p PropResult) Property {
+	allProperties := Map(res, func(p PropResult) Property {
 		return toModel(p)
 	})
-	return properties, nil
+	namespace := GetNamespaceByName(namespaceName)
+	propertiesByNs := Filter(allProperties, func(p Property) bool {
+		if namespaceName == "" {
+			return p.NamespaceId == ""
+		} else {
+			return namespace != nil && p.NamespaceId == namespace.Id
+		}
+	})
+	if serviceName == "" {
+		result := make([]Property, 0)
+		for _, p := range propertiesByNs {
+			if p.ServiceId == "" {
+				result = append(result, p)
+			}
+		}
+		return result, nil
+	} else {
+		service := GetServiceByName(serviceName)
+		propertiesByName := make(map[string]Property)
+		for _, p := range propertiesByNs {
+			emptyService := p.ServiceId == ""
+			sameService := service != nil && p.ServiceId == service.Id
+			if sameService || emptyService {
+				if written, has := propertiesByName[p.Name]; has {
+					if sameService && written.ServiceId == "" {
+						propertiesByName[p.Name] = p
+					}
+				} else {
+					propertiesByName[p.Name] = p
+				}
+			}
+		}
+		return maps.Values(propertiesByName), nil
+	}
 }
 
 func GetProp(id string) (Property, error) {
@@ -315,24 +350,17 @@ func importNamespaces(tx *sql.Tx, namespaces []Namespace) error {
 	var valuesStr []string
 	var values []interface{}
 
-	for _, namespace := range namespaces {
-		valuesStr = append(valuesStr, "(?,?)")
-		values = append(values,
-			namespace.Id,
-			namespace.Name,
-		)
-	}
+	if len(namespaces) > 0 {
+		for _, namespace := range namespaces {
+			valuesStr = append(valuesStr, "(?,?)")
+			values = append(values, namespace.Id, namespace.Name)
+		}
+		query := fmt.Sprintf("INSERT INTO namespaces (id, name) VALUES %s", strings.Join(valuesStr, ","))
 
-	_, err := tx.Exec("delete from namespaces")
-	if err != nil {
-		return err
-	}
-
-	query := fmt.Sprintf("INSERT INTO namespaces (id, name) VALUES %s", strings.Join(valuesStr, ","))
-
-	_, err = tx.Exec(query, values...)
-	if err != nil {
-		return err
+		_, err := tx.Exec(query, values...)
+		if err != nil {
+			return err
+		}
 	}
 
 	println("Namespaces imported successfully")
@@ -340,22 +368,24 @@ func importNamespaces(tx *sql.Tx, namespaces []Namespace) error {
 }
 
 func importServices(tx *sql.Tx, services []Service) error {
-	var valuesStr []string
-	var values []interface{}
+	if len(services) > 0 {
+		var valuesStr []string
+		var values []interface{}
 
-	for _, service := range services {
-		valuesStr = append(valuesStr, "(?,?)")
-		values = append(values,
-			service.Id,
-			service.Name,
-		)
-	}
+		for _, service := range services {
+			valuesStr = append(valuesStr, "(?,?)")
+			values = append(values,
+				service.Id,
+				service.Name,
+			)
+		}
 
-	query := fmt.Sprintf("INSERT INTO services (id, name) VALUES %s", strings.Join(valuesStr, ","))
+		query := fmt.Sprintf("INSERT INTO services (id, name) VALUES %s", strings.Join(valuesStr, ","))
 
-	_, err := tx.Exec(query, values...)
-	if err != nil {
-		return err
+		_, err := tx.Exec(query, values...)
+		if err != nil {
+			return err
+		}
 	}
 
 	println("Services imported successfully")

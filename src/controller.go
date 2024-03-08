@@ -242,6 +242,7 @@ func main() {
 	})
 
 	http.HandleFunc("/api/import", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("/import")
 		err := authAsMachine(r)
 		err2 := authAsAdmin(r)
 		if err != nil && err2 != nil {
@@ -303,11 +304,13 @@ func toIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleBadRequest(w http.ResponseWriter, err error) {
+	fmt.Println(err)
 	w.WriteHeader(400)
 	fmt.Fprintf(w, "{\"ok\": \"false\", \"err\":\"%s\"}", err.Error())
 }
 
 func handleErrInController(w http.ResponseWriter, err error) {
+	fmt.Println(err)
 	w.WriteHeader(500)
 	fmt.Fprintf(w, "{\"ok\": \"false\", \"err\":\"%s\"}", err.Error())
 }

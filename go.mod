@@ -8,3 +8,5 @@ require (
 	github.com/logotipiwe/dc_go_env_lib v0.0.6
 	github.com/logotipiwe/dc_go_utils v1.0.4
 )
+
+require golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect

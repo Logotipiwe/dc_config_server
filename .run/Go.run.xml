@@ -9,10 +9,11 @@
       <env name="DB_LOGIN" value="root" />
       <env name="DB_NAME" value="config_server" />
       <env name="DB_PASS" value="1234" />
-      <env name="OUTER_PORT" value="3000" />
-      <env name="SUBPATH" value="" />
-      <env name="OUTER_SCHEME" value="http" />
+      <env name="M_TOKEN" value="4321" />
       <env name="OUTER_HOST" value="localhost" />
+      <env name="OUTER_PORT" value="3000" />
+      <env name="OUTER_SCHEME" value="http" />
+      <env name="SUBPATH" value="" />
     </envs>
     <kind value="PACKAGE" />
     <package value="config_server/src" />

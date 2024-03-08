@@ -22,8 +22,8 @@ services:
 #      IDP_SUBPATH:
       M_TOKEN: ${M_TOKEN}
       AUTH_SECRET: ${CONFIG_SERVER_AUTH_SECRET}
-    ports:
-      - 81:80
+#    ports:
+#      - 81:80
 networks:
   dc-net:
     external: true
