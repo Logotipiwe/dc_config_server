@@ -23,7 +23,7 @@ create table config_server.config_entries
     namespace varchar(255)         null,
     is_active tinyint(1) default 1 not null,
     name      varchar(255)         not null,
-    value     varchar(255)         not null,
+    value     text         not null,
     constraint config_entries_namespaces_id_fk
         foreign key (namespace) references namespaces (id),
     constraint config_entries_services_id_fk
